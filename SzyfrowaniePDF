@@ -1,0 +1,79 @@
+import tkinter as tk
+from tkinter import filedialog, messagebox
+from PyPDF2 import PdfReader, PdfWriter
+
+def encrypt_pdf(input_file, output_file, password):
+    try:
+        pdf_reader = PdfReader(open(input_file, 'rb'))
+        pdf_writer = PdfWriter()
+
+        for page in pdf_reader.pages:
+            pdf_writer.add_page(page)
+
+        pdf_writer.encrypt(password)
+
+        with open(output_file, 'wb') as output_pdf:
+            pdf_writer.write(output_pdf)
+
+        messagebox.showinfo('Pełen sukces!', 'Plik został zaszyfrowany!')
+    except Exception as e:
+        messagebox.showerror('Błąd', f'Wystąpił błąd: {str(e)}')
+
+def browse_file():
+    input_file = filedialog.askopenfilename(filetypes=[('PDF files', '*.pdf')])
+    if not input_file:
+        return
+
+    selected_file_text.config(text=f'Wybrany plik: {input_file}')
+    global selected_input_file
+    selected_input_file = input_file
+
+def encrypt_button_click():
+    password = password_entry.get()
+    if len(password) < 6:
+        messagebox.showerror('Błąd', 'OPSec first - hasło musi mieć minimum 6 znaków.')
+        return
+
+    if not selected_input_file:
+        messagebox.showwarning("Nie wybrano pliku", "Musisz wybrać PDF'a do zaszyfrowania.")
+        return
+
+    output_file = filedialog.asksaveasfilename(defaultextension='.pdf', filetypes=[('PDF files', '*.pdf')])
+
+    encrypt_pdf(selected_input_file, output_file, password)
+
+# Create the tkinter GUI
+root = tk.Tk()
+root.title('Szyfrator PDF')
+root.geometry('600x400')  # Set the initial size of the window
+
+# Logo
+#logo_image = tk.PhotoImage(file='logo.png')
+#logo_label = tk.Label(root, image=logo_image)
+#logo_label.pack(side=tk.LEFT)
+label_select_file = tk.Label(root, text='Tym programem zaszyfrujesz swojego PDFa.) ')
+label_select_file.pack(pady=10)
+
+label_select_file = tk.Label(root, text='Wybierz plik PDF:')
+label_select_file.pack(pady=10)
+
+btn_browse_file = tk.Button(root, text='Przeglądaj...', command=browse_file)
+btn_browse_file.pack()
+
+selected_file_text = tk.Label(root, text='Plik: ')
+selected_file_text.pack()
+
+password_label = tk.Label(root, text='Wpisz hasło, którym zaszyfrujesz plik:')
+password_label.pack(pady=10)
+
+password_entry = tk.Entry(root, show='*')
+password_entry.pack()
+
+btn_encrypt = tk.Button(root, text='Szyfruj', command=encrypt_button_click)
+btn_encrypt.pack(pady=10)
+
+# Author Bar
+author_bar_label = tk.Label(root, text=' Bartłomiej Hodio, Poland ')
+author_bar_label.pack(side=tk.BOTTOM, fill=tk.X)
+
+root.mainloop()
